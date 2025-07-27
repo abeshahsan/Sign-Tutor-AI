@@ -1,4 +1,4 @@
 """
-Utility functions and helpers for Sign Language Learning Studio
+Utility functions and helpers for Sign Tutor AI
 Contains common utilities and helper functions.
 """

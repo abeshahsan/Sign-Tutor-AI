@@ -1,6 +1,6 @@
-# Sign Language Learning Studio
+# Sign Tutor AI
 
-A professional desktop application for learning sign language using AI-powered recognition with YOLOv5.
+A professional AI-powered tutor for learning sign language using advanced computer vision with YOLOv5.
 
 ## 🏗️ Architecture
 

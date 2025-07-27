@@ -6,12 +6,12 @@ Contains all constants and configuration settings
 import os
 
 # Application Configuration
-APP_NAME = "Sign Language Learning Studio"
+APP_NAME = "Sign Tutor AI"
 APP_VERSION = "2.0"
 ORGANIZATION_NAME = "AI Learning Labs"
 
 # UI Configuration
-WINDOW_TITLE = "🤟 Sign Language Learning Studio"
+WINDOW_TITLE = "🤟 Sign Tutor AI"
 WINDOW_SIZE = (1400, 900)
 WINDOW_MIN_SIZE = (1200, 800)
 

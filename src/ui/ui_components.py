@@ -27,12 +27,12 @@ class TitleWidget(QWidget):
         
         # Main title
         self.title_label = QLabel()
-        WidgetStyler.style_title_label(self.title_label, "🤟 Sign Language Studio")
+        WidgetStyler.style_title_label(self.title_label, "🤟 Sign Tutor AI")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Subtitle
         self.subtitle_label = QLabel()
-        WidgetStyler.style_subtitle_label(self.subtitle_label, "Learn with AI-Powered Recognition")
+        WidgetStyler.style_subtitle_label(self.subtitle_label, "Your AI-Powered Sign Language Tutor")
         self.subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         layout.addWidget(self.title_label)

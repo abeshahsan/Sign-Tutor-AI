@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Sign Language Learning Studio - Entry Point
-Professional desktop application for learning sign language using AI-powered recognition.
+Sign Tutor AI - Entry Point
+Professional AI-powered tutor for learning sign language using advanced computer vision.
 
 Usage:
     python app.py
