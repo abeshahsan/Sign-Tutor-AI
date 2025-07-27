@@ -4,6 +4,7 @@ Handles YOLOv5 model loading and inference
 """
 
 import sys
+import os
 import warnings
 import cv2
 import numpy as np
@@ -16,7 +17,10 @@ from config import MODEL_PATH, DEVICE, YOLO_PATH, INPUT_SIZE, CONFIDENCE_THRESHO
 warnings.filterwarnings("ignore", category=DeprecationWarning, module=".*sip.*")
 
 # Add yolov5 to path
-sys.path.append(YOLO_PATH)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(os.path.dirname(current_dir))
+yolo_path = os.path.join(project_root, YOLO_PATH)
+sys.path.append(yolo_path)
 
 try:
     from yolov5.models.common import DetectMultiBackend
@@ -47,10 +51,15 @@ class ModelManager:
             return False
             
         try:
-            self.model = DetectMultiBackend(MODEL_PATH, device=DEVICE)
+            # Get absolute path to model file
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(os.path.dirname(current_dir))
+            model_path = os.path.join(project_root, MODEL_PATH)
+            
+            self.model = DetectMultiBackend(model_path, device=DEVICE)
             self.model_names = self.model.names
             self.is_loaded = True
-            print(f"AI Model loaded successfully from {MODEL_PATH}")
+            print(f"AI Model loaded successfully from {model_path}")
             return True
             
         except Exception as e:

@@ -28,7 +28,7 @@ REQUIRED_DETECTIONS = 15
 INPUT_SIZE = (416, 416)
 
 # Model Configuration
-MODEL_PATH = "best.pt"
+MODEL_PATH = "weights/yolov5_v0.pt"
 DEVICE = "cpu"
 
 # File Paths

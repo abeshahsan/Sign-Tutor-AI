@@ -12,11 +12,11 @@ from PyQt6.QtGui import QFont
 
 from config import (APP_NAME, APP_VERSION, ORGANIZATION_NAME, WINDOW_TITLE, 
                    WINDOW_SIZE, WINDOW_MIN_SIZE, MESSAGES)
-from model_manager import ModelManager
-from video_processor import CameraManager
-from game_logic import GameLogic
-from ui_styles import StyleManager
-from ui_components import (TitleWidget, CurrentSignWidget, ProgressWidget, 
+from core.model_manager import ModelManager
+from core.video_processor import CameraManager
+from core.game_logic import GameLogic
+from ui.ui_styles import StyleManager
+from ui.ui_components import (TitleWidget, CurrentSignWidget, ProgressWidget, 
                           ControlsWidget, VideoDisplayWidget, DetectionStatusWidget)
 
 
@@ -272,10 +272,6 @@ def main():
     app.setApplicationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
     app.setOrganizationName(ORGANIZATION_NAME)
-    
-    # Check for model file
-    if not os.path.exists('best.pt'):
-        print("⚠️ Warning: Model file 'best.pt' not found!")
     
     # Create and show main window
     window = SignLanguageApp()

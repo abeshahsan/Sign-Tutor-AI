@@ -10,7 +10,7 @@ from typing import Optional
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from config import CAMERA_INDEX, FRAME_DELAY
-from model_manager import ModelManager, DetectionResult
+from core.model_manager import ModelManager, DetectionResult
 
 
 class VideoThread(QThread):

@@ -4,6 +4,7 @@ Handles scoring, progress tracking, and game state management
 """
 
 import random
+import time
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 

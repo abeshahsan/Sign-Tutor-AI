@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QImage
 
-from ui_styles import StyleManager, FontManager, WidgetStyler
+from ui.ui_styles import StyleManager, FontManager, WidgetStyler
 from config import MESSAGES
 
 

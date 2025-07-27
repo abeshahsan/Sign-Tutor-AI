@@ -35,16 +35,20 @@ The application follows clean coding principles with proper separation of concer
 ## 📁 File Structure
 
 ```
-├── main_app.py              # Main application entry point
-├── config.py                # Configuration and constants
-├── model_manager.py          # AI model management
-├── video_processor.py        # Camera and video processing
-├── game_logic.py            # Game logic and scoring
-├── ui_styles.py             # Styling and themes
-├── ui_components.py         # Modular UI components
-├── professional_pyqt_app.py # Original monolithic version (deprecated)
-├── best.pt                  # YOLOv5 model file
-└── yolov5/                  # YOLOv5 framework
+├── app.py                   # Main application entry point
+├── src/                     # Source code directory
+│   ├── config.py           # Configuration and constants
+│   ├── main_app.py         # Main application orchestration
+│   ├── core/               # Core functionality
+│   │   ├── model_manager.py    # AI model management
+│   │   ├── video_processor.py  # Camera and video processing
+│   │   └── game_logic.py       # Game logic and scoring
+│   └── ui/                 # User interface components
+│       ├── ui_styles.py        # Styling and themes
+│       └── ui_components.py    # Modular UI widgets
+├── weights/                 # Model weights directory
+│   └── yolov5_v0.pt        # YOLOv5 trained model
+└── yolov5/                 # YOLOv5 framework
 ```
 
 ## 🛠️ Installation
@@ -54,16 +58,16 @@ The application follows clean coding principles with proper separation of concer
    pip install PyQt6 torch torchvision opencv-python ultralytics Pillow numpy
    ```
 
-2. **Ensure Model File**: Make sure `best.pt` is in the root directory
+2. **Ensure Model File**: Make sure `yolov5_v0.pt` is in the `weights/` directory
 
 3. **Run Application**:
    ```bash
-   python main_app.py
+   python app.py
    ```
 
 ## 🎯 Usage
 
-1. **Start the Application**: Run `python main_app.py`
+1. **Start the Application**: Run `python app.py`
 2. **Select a Sign**: Click "New Sign Challenge" to get a random sign
 3. **Start Camera**: Click "Start Camera" to begin detection
 4. **Practice**: Show the sign to the camera until you reach 15 detections
