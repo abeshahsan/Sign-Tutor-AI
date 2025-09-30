@@ -23,18 +23,20 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, 'src')
 sys.path.append(src_dir)  # Use append instead of insert to give priority to system modules
 
-# Check for available models
-weights_dir = os.path.join(current_dir, 'weights')
-if os.path.exists(weights_dir):
-    model_files = [f for f in os.listdir(weights_dir) if f.endswith('.pt') or f.endswith('.pth')]
-    if model_files:
-        print(f"📁 Found {len(model_files)} model(s) in weights directory:")
-        for model_file in model_files:
-            print(f"   • {model_file}")
-    else:
-        print("⚠️ Warning: No model files (.pt/.pth) found in 'weights/' directory!")
+# Check for available models configuration
+models_config_path = os.path.join(current_dir, 'models', 'models_config.yaml')
+if os.path.exists(models_config_path):
+    print("📁 Found models configuration file")
+    try:
+        import yaml
+        with open(models_config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        model_count = len(config.get('models', {}))
+        print(f"📊 Configured {model_count} model(s) in models_config.yaml")
+    except Exception as e:
+        print(f"⚠️ Error reading models config: {e}")
 else:
-    print("⚠️ Warning: 'weights/' directory not found!")
+    print("⚠️ Warning: 'models/models_config.yaml' not found!")
 
 # Import and run the main application
 from src.main_app import main

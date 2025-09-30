@@ -208,14 +208,23 @@ class ModelSelectionWidget(QWidget):
         for display_name, path in models_dict.items():
             self.model_combo.addItem(display_name, path)
             print(f"Added model: {display_name} -> {path}")  # Debug
+            
+            # Add tooltip showing the full path
+            index = self.model_combo.count() - 1
+            tooltip_text = f"Model: {display_name}\nPath: {path}"
+            self.model_combo.setItemData(index, tooltip_text, Qt.ItemDataRole.ToolTipRole)
         
         # Force the combobox to update and show all items
         self.model_combo.setCurrentIndex(0 if models_dict else -1)
         print(f"Model combobox count after update: {self.model_combo.count()}")
         
+        # Set tooltip for the combo box itself
         if models_dict:
+            first_model = list(models_dict.keys())[0]
+            self.model_combo.setToolTip(f"Current model: {first_model}\nClick to select a different model")
             self.model_info_label.setText(f"Found {len(models_dict)} model(s)")
         else:
+            self.model_combo.setToolTip("No models available")
             self.model_info_label.setText("No models found")
     
     def on_model_changed(self, model_name):
@@ -275,14 +284,23 @@ class CameraSelectionWidget(QWidget):
         for camera_index, camera_name in cameras_dict.items():
             self.camera_combo.addItem(camera_name, camera_index)
             print(f"Added camera: {camera_index} -> {camera_name}")  # Debug
+            
+            # Add tooltip showing the camera details
+            index = self.camera_combo.count() - 1
+            tooltip_text = f"Camera: {camera_name}\nIndex: {camera_index}\nClick to select this camera"
+            self.camera_combo.setItemData(index, tooltip_text, Qt.ItemDataRole.ToolTipRole)
         
         # Force the combobox to update and show all items
         self.camera_combo.setCurrentIndex(0 if cameras_dict else -1)
         print(f"Combobox count after update: {self.camera_combo.count()}")
         
+        # Set tooltip for the combo box itself
         if cameras_dict:
+            first_camera = list(cameras_dict.values())[0]
+            self.camera_combo.setToolTip(f"Current camera: {first_camera}\nClick to select a different camera")
             self.camera_info_label.setText(f"Found {len(cameras_dict)} camera(s)")
         else:
+            self.camera_combo.setToolTip("No cameras available")
             self.camera_info_label.setText("No cameras detected")
     
     def on_camera_changed(self, index):
@@ -368,17 +386,22 @@ class VideoDisplayWidget(QWidget):
         self.video_frame.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken)
         self.video_frame.setLineWidth(2)
         self.video_frame.setStyleSheet(StyleManager.get_video_frame_style())
-        self.video_frame.setMinimumHeight(300)  # Reduced from 450 to 300
-        self.video_frame.setMaximumHeight(400)  # Added maximum height
+        self.video_frame.setMinimumHeight(250)  # Reduced minimum height
+        # Remove maximum height to allow flexible sizing
+        self.video_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         
         video_layout = QVBoxLayout(self.video_frame)
         video_layout.setContentsMargins(10, 10, 10, 10)
         
         self.video_label = QLabel()
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.video_label.setMinimumSize(640, 480)
+        # Don't scale contents automatically - we handle scaling manually to preserve aspect ratio
+        self.video_label.setScaledContents(False)
+        self.video_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.video_label.setStyleSheet(StyleManager.get_video_label_style())
         self.video_label.setText(MESSAGES['camera_off'])
+        # Set minimum size for the video area
+        self.video_label.setMinimumSize(320, 240)
         
         video_layout.addWidget(self.video_label)
         
@@ -394,15 +417,23 @@ class VideoDisplayWidget(QWidget):
             bytes_per_line = ch * w
             qt_image = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
             
-            # Scale image to fit label while maintaining aspect ratio
+            # Get the available size in the container
+            container_size = self.video_frame.size()
+            available_width = container_size.width() - 20  # Account for margins
+            available_height = container_size.height() - 20  # Account for margins
+            
+            # Scale image to fit available space while maintaining aspect ratio
             pixmap = QPixmap.fromImage(qt_image)
             scaled_pixmap = pixmap.scaled(
-                self.video_label.size(), 
+                available_width, 
+                available_height,
                 Qt.AspectRatioMode.KeepAspectRatio, 
                 Qt.TransformationMode.SmoothTransformation
             )
             
+            # Center the scaled image in the label
             self.video_label.setPixmap(scaled_pixmap)
+            self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             
         except Exception as e:
             print(f"Video display error: {e}")

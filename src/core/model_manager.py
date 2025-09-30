@@ -9,6 +9,7 @@ import warnings
 import cv2
 import numpy as np
 import torch
+import yaml
 from typing import List, Dict, Optional, Tuple
 
 from config import MODEL_PATH, DEVICE, YOLO_PATH, INPUT_SIZE, CONFIDENCE_THRESHOLD, NMS_THRESHOLD, MAX_DETECTIONS
@@ -19,15 +20,44 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module=".*sip.*")
 # Add yolov5 to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(os.path.dirname(current_dir))
-yolo_path = os.path.join(project_root, YOLO_PATH)
-sys.path.append(yolo_path)
+
+# Try multiple locations for yolov5
+yolo_locations = [
+    os.path.join(project_root, YOLO_PATH),  # New location (models/yolov5)
+    os.path.join(project_root, "yolov5"),   # Old location (yolov5)
+]
+
+yolov5_found = False
+for yolo_path in yolo_locations:
+    if os.path.exists(yolo_path):
+        sys.path.insert(0, yolo_path)  # Use insert to prioritize
+        print(f"Added yolov5 path to sys.path: {yolo_path}")
+        yolov5_found = True
+        break
+
+if not yolov5_found:
+    print("Warning: yolov5 directory not found in any expected location")
 
 try:
-    from yolov5.models.common import DetectMultiBackend
-    from yolov5.utils.general import non_max_suppression, scale_boxes
+    # Try importing yolov5 modules directly (since yolov5 folder is in sys.path)
+    print("Attempting to import yolov5 modules...")
+    
+    import sys
+    print(f"Python path includes: {[p for p in sys.path if 'yolov5' in p]}")
+    
+    # Import modules directly from the yolov5 folder
+    from models.common import DetectMultiBackend
+    print("Successfully imported DetectMultiBackend")
+    
+    from utils.general import non_max_suppression, scale_boxes
+    print("Successfully imported yolov5 utils")
+    
     MODEL_AVAILABLE = True
+    print("✅ All YOLOv5 dependencies loaded successfully")
 except ImportError as e:
-    print(f"Model import error: {e}")
+    print(f"❌ Model import error: {e}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Python path: {sys.path[:3]}...")  # Show first few paths
     MODEL_AVAILABLE = False
 
 
@@ -42,26 +72,48 @@ class ModelManager:
         self.current_model_path = None
         self.discover_models()
     
-    def discover_models(self) -> Dict[str, str]:
+    def discover_models(self) -> Dict[str, Dict]:
         """
-        Discover all available model files in the weights directory
+        Load available models from YAML configuration
         
         Returns:
-            dict: Dictionary mapping model names to file paths
+            dict: Dictionary mapping model names to model info
         """
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
-        weights_dir = os.path.join(project_root, 'weights')
+        config_path = os.path.join(project_root, 'models', 'models_config.yaml')
         
         self.available_models = {}
         
-        if os.path.exists(weights_dir):
-            for file in os.listdir(weights_dir):
-                if file.endswith('.pt') or file.endswith('.pth'):
-                    model_name = file.replace('.pt', '').replace('.pth', '')
-                    # Make model names more user-friendly
-                    display_name = model_name.replace('_', ' ').replace('yolov5', 'YOLOv5').title()
-                    self.available_models[display_name] = os.path.join(weights_dir, file)
+        try:
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                
+                for model_id, model_info in config.get('models', {}).items():
+                    if not model_info.get('enabled', True):
+                        continue
+                        
+                    model_dir = os.path.join(project_root, model_info['path'])
+                    model_full_path = os.path.join(model_dir, model_info['model_file'])
+                    
+                    print(f"Checking model: {model_info['name']}")
+                    print(f"  Project root: {project_root}")
+                    print(f"  Model path config: {model_info['path']}")
+                    print(f"  Model file: {model_info['model_file']}")
+                    print(f"  Full path: {model_full_path}")
+                    print(f"  Exists: {os.path.exists(model_full_path)}")
+                    
+                    if os.path.exists(model_full_path):
+                        self.available_models[model_info['name']] = model_full_path
+                        print(f"✓ Added model: {model_info['name']}")
+                    else:
+                        print(f"✗ Model file not found: {model_full_path}")
+            else:
+                print(f"Models config file not found: {config_path}")
+                
+        except Exception as e:
+            print(f"Error loading models config: {e}")
         
         print(f"Discovered {len(self.available_models)} models: {list(self.available_models.keys())}")
         return self.available_models

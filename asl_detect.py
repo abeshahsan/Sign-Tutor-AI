@@ -11,7 +11,7 @@ import subprocess
 import time
 
 # Add yolov5 to path
-yolo_path = Path(__file__).parent / 'yolov5'
+yolo_path = Path(__file__).parent / 'models' / 'yolov5'
 sys.path.append(str(yolo_path))
 
 def run_asl_detection(source='0', save_video=False, conf_thresh=0.15):
@@ -26,7 +26,7 @@ def run_asl_detection(source='0', save_video=False, conf_thresh=0.15):
     
     # Paths
     weights_path = r'f:\UNI_STUFF\8th Sem\Projects\PR\Sign-Language-Generation-From-Video-using-YOLOV5\training\runs\asl_letters_fresh\weights\best.pt'
-    detect_script = r'f:\UNI_STUFF\8th Sem\Projects\PR\Sign-Language-Generation-From-Video-using-YOLOV5\yolov5\detect.py'
+    detect_script = r'f:\UNI_STUFF\8th Sem\Projects\PR\Sign-Language-Generation-From-Video-using-YOLOV5\models\yolov5\detect.py'
     
     # Check if files exist
     if not os.path.exists(weights_path):

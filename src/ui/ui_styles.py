@@ -264,6 +264,7 @@ class WidgetStyler:
         """Style a combo box"""
         combo_box.setFont(FontManager.get_font('normal'))
         combo_box.setMinimumHeight(35)
+        combo_box.setMinimumWidth(250)  # Make dropdowns wider to fit text
         combo_box.setMaxVisibleItems(10)  # Show up to 10 items in dropdown
         combo_box.setStyleSheet(f"""
             QComboBox {{

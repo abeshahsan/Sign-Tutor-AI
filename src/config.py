@@ -32,7 +32,7 @@ MODEL_PATH = "weights/yolov5_v0.pt"
 DEVICE = "cpu"
 
 # File Paths
-YOLO_PATH = "yolov5"
+YOLO_PATH = "models/yolov5"
 
 # Sign Language Data
 SIGNS_DATABASE = {

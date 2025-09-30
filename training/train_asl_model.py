@@ -15,11 +15,11 @@ def setup_training_environment():
     
     # Get paths
     project_root = Path(__file__).parent.parent
-    yolov5_dir = project_root / "yolov5"
+    yolov5_dir = project_root / "models" / "yolov5"
     
     if not yolov5_dir.exists():
         print("❌ YOLOv5 directory not found!")
-        print("   Make sure you have the yolov5/ folder in your project")
+        print("   Make sure you have the models/yolov5/ folder in your project")
         return False
     
     print(f"✅ YOLOv5 found at: {yolov5_dir}")
@@ -51,7 +51,7 @@ def train_asl_model(dataset_path, epochs=100, batch_size=16, img_size=640):
     
     # Setup paths
     project_root = Path(__file__).parent.parent
-    yolov5_dir = project_root / "yolov5"
+    yolov5_dir = project_root / "models" / "yolov5"
     train_script = yolov5_dir / "train.py"
     
     if not train_script.exists():

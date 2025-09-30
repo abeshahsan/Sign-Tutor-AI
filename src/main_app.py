@@ -119,22 +119,36 @@ class SignLanguageApp(QMainWindow):
         layout = QVBoxLayout(panel)
         layout.setSpacing(15)
         
-        # Create selection controls row
-        selection_row = QHBoxLayout()
-        self.model_selection_widget = ModelSelectionWidget()
-        self.camera_selection_widget = CameraSelectionWidget()
+        # Create main content area with horizontal layout
+        main_content = QHBoxLayout()
         
-        selection_row.addWidget(self.model_selection_widget)
-        selection_row.addWidget(self.camera_selection_widget)
-        
-        # Initialize other components
+        # Left side: Video and detection (center area)
+        video_section = QVBoxLayout()
         self.video_widget = VideoDisplayWidget()
         self.detection_widget = DetectionStatusWidget()
         
-        # Add components to layout with better proportions
-        layout.addLayout(selection_row)  # Selection boxes at top
-        layout.addWidget(self.video_widget, 3)  # Video gets most space
-        layout.addWidget(self.detection_widget, 1)  # Detection status at bottom
+        video_section.addWidget(self.video_widget, 1)  # Video gets most space
+        video_section.addWidget(self.detection_widget)
+        
+        # Right side: Selection controls
+        controls_section = QVBoxLayout()
+        self.model_selection_widget = ModelSelectionWidget()
+        self.camera_selection_widget = CameraSelectionWidget()
+        
+        # Set maximum width for the controls to accommodate wider dropdowns
+        self.model_selection_widget.setMaximumWidth(350)
+        self.camera_selection_widget.setMaximumWidth(350)
+        
+        controls_section.addWidget(self.model_selection_widget)
+        controls_section.addWidget(self.camera_selection_widget)
+        controls_section.addStretch()  # Push controls to top
+        
+        # Add both sections to main content
+        main_content.addLayout(video_section, 3)  # Video section gets more space
+        main_content.addLayout(controls_section, 1)  # Controls get less space
+        
+        # Add main content to panel layout
+        layout.addLayout(main_content, 1)
         
         return panel
     

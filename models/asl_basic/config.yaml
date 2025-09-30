@@ -1,0 +1,39 @@
+name: "ASL Basic Signs"
+description: "Basic American Sign Language detection model for common signs"
+version: "1.0"
+author: "Sign Tutor AI Team"
+created_date: "2025-09-30"
+
+# Model specifications
+model:
+  file: "model.pt"
+  framework: "YOLOv5"
+  input_size: [640, 640]
+  classes: 6
+  
+# Class mappings
+classes:
+  0: "Hello"
+  1: "IloveYou" 
+  2: "No"
+  3: "Please"
+  4: "Thanks"
+  5: "Yes"
+
+# Detection parameters
+detection:
+  confidence_threshold: 0.5
+  nms_threshold: 0.4
+  max_detections: 10
+
+# Training information (optional)
+training:
+  dataset: "American Sign Language Letters v1"
+  epochs: 100
+  batch_size: 16
+  accuracy: "92.3%"
+  
+# Usage notes
+notes: |
+  This model detects 6 basic ASL signs commonly used in everyday communication.
+  Best used in well-lit environments with clear hand visibility.

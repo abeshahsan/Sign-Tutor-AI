@@ -1,0 +1,27 @@
+# Model Management Configuration
+# Each model should be in its own folder with this structure:
+# models/
+#   ├── model_name/
+#   │   ├── model.pt (or model.pth)
+#   │   ├── config.yaml
+#   │   └── README.md (optional)
+
+models:
+  yolov5_asl:
+    name: "YOLOv5 ASL Model"
+    description: "YOLOv5 American Sign Language detection model"
+    version: "1.0"
+    path: "weights"
+    model_file: "yolov5_v0.pt"
+    classes: ["Hello", "IloveYou", "No", "Please", "Thanks", "Yes"]
+    input_size: [640, 640]
+    confidence_threshold: 0.5
+    nms_threshold: 0.4
+    enabled: true
+
+# Global settings
+global:
+  default_model: "yolov5_asl"
+  model_base_path: "models"
+  max_detections: 10
+  device: "auto"  # auto, cpu, cuda

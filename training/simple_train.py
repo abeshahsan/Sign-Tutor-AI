@@ -10,7 +10,7 @@ import torch
 from pathlib import Path
 
 # Add yolov5 to path
-yolov5_path = Path(__file__).parent.parent / "yolov5"
+yolov5_path = Path(__file__).parent.parent / "models" / "yolov5"
 sys.path.insert(0, str(yolov5_path))
 
 def main():
