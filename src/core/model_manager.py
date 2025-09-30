@@ -38,10 +38,44 @@ class ModelManager:
         self.model = None
         self.model_names = {}
         self.is_loaded = False
+        self.available_models = {}
+        self.current_model_path = None
+        self.discover_models()
+    
+    def discover_models(self) -> Dict[str, str]:
+        """
+        Discover all available model files in the weights directory
         
-    def load_model(self) -> bool:
+        Returns:
+            dict: Dictionary mapping model names to file paths
+        """
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        weights_dir = os.path.join(project_root, 'weights')
+        
+        self.available_models = {}
+        
+        if os.path.exists(weights_dir):
+            for file in os.listdir(weights_dir):
+                if file.endswith('.pt') or file.endswith('.pth'):
+                    model_name = file.replace('.pt', '').replace('.pth', '')
+                    # Make model names more user-friendly
+                    display_name = model_name.replace('_', ' ').replace('yolov5', 'YOLOv5').title()
+                    self.available_models[display_name] = os.path.join(weights_dir, file)
+        
+        print(f"Discovered {len(self.available_models)} models: {list(self.available_models.keys())}")
+        return self.available_models
+    
+    def get_available_models(self) -> Dict[str, str]:
+        """Get list of available model names and paths"""
+        return self.available_models
+    
+    def load_model(self, model_path: Optional[str] = None) -> bool:
         """
         Load YOLOv5 model from file
+        
+        Args:
+            model_path: Optional path to specific model file. If None, uses default.
         
         Returns:
             bool: True if model loaded successfully, False otherwise
@@ -51,15 +85,49 @@ class ModelManager:
             return False
             
         try:
-            # Get absolute path to model file
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            project_root = os.path.dirname(os.path.dirname(current_dir))
-            model_path = os.path.join(project_root, MODEL_PATH)
+            # Use provided model path or default
+            if model_path is None:
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                project_root = os.path.dirname(os.path.dirname(current_dir))
+                model_path = os.path.join(project_root, MODEL_PATH)
             
-            self.model = DetectMultiBackend(model_path, device=DEVICE)
-            self.model_names = self.model.names
+            self.current_model_path = model_path
+            
+            print(f"Loading model from: {model_path}")
+            
+            # Check if model file exists
+            if not os.path.exists(model_path):
+                print(f"Model file not found: {model_path}")
+                return False
+            
+            # Load model with robust device handling
+            try:
+                # Use torch.device for proper device specification
+                device = torch.device(DEVICE)
+                self.model = DetectMultiBackend(model_path, device=device)
+            except Exception as e1:
+                try:
+                    # Fallback: try without device parameter (auto-detect)
+                    self.model = DetectMultiBackend(model_path)
+                except Exception as e2:
+                    raise Exception(f"Failed to load model: {e1}")
+            
+            # Handle model names properly
+            if hasattr(self.model, 'names') and self.model.names is not None:
+                if isinstance(self.model.names, dict):
+                    self.model_names = self.model.names
+                elif isinstance(self.model.names, list):
+                    self.model_names = {i: name for i, name in enumerate(self.model.names)}
+                else:
+                    # Fallback to ASL letters for unexpected types
+                    self.model_names = {i: chr(65+i) for i in range(26)}
+            else:
+                # Fallback to ASL letters if no names available
+                self.model_names = {i: chr(65+i) for i in range(26)}
+            
             self.is_loaded = True
             print(f"AI Model loaded successfully from {model_path}")
+            print(f"Model has {len(self.model_names)} classes: {list(self.model_names.values())}")
             return True
             
         except Exception as e:
@@ -160,6 +228,24 @@ class ModelManager:
             str: The class name or default string
         """
         return self.model_names.get(class_id, f"Class_{class_id}")
+    
+    def get_current_model_info(self) -> Dict[str, any]:
+        """
+        Get information about the currently loaded model
+        
+        Returns:
+            dict: Dictionary with model information
+        """
+        if not self.is_loaded:
+            return {"loaded": False}
+        
+        return {
+            "loaded": True,
+            "path": self.current_model_path,
+            "name": os.path.basename(self.current_model_path) if self.current_model_path else "Unknown",
+            "classes": len(self.model_names),
+            "class_names": list(self.model_names.values())
+        }
     
     def is_model_loaded(self) -> bool:
         """

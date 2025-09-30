@@ -258,3 +258,62 @@ class WidgetStyler:
         """Style a group box"""
         group_box.setTitle(title)
         group_box.setFont(FontManager.get_font('medium'))
+    
+    @staticmethod
+    def style_combo_box(combo_box):
+        """Style a combo box"""
+        combo_box.setFont(FontManager.get_font('normal'))
+        combo_box.setMinimumHeight(35)
+        combo_box.setMaxVisibleItems(10)  # Show up to 10 items in dropdown
+        combo_box.setStyleSheet(f"""
+            QComboBox {{
+                border: 2px solid {COLORS['border']};
+                border-radius: 5px;
+                padding: 5px;
+                background-color: {COLORS['white']};
+                color: {COLORS['dark']};
+                selection-background-color: {COLORS['primary']};
+            }}
+            QComboBox:hover {{
+                border-color: {COLORS['primary']};
+            }}
+            QComboBox::drop-down {{
+                border: none;
+                width: 20px;
+                background-color: {COLORS['white']};
+            }}
+            QComboBox::down-arrow {{
+                image: none;
+                border: 1px solid {COLORS['border']};
+                width: 3px;
+                height: 3px;
+                background: {COLORS['primary']};
+            }}
+            QComboBox QAbstractItemView {{
+                border: 2px solid {COLORS['border']};
+                background-color: {COLORS['white']};
+                color: {COLORS['dark']};
+                selection-background-color: {COLORS['primary']};
+                selection-color: white;
+                outline: none;
+            }}
+            QComboBox QAbstractItemView::item {{
+                padding: 8px;
+                border: none;
+                min-height: 25px;
+            }}
+            QComboBox QAbstractItemView::item:selected {{
+                background-color: {COLORS['primary']};
+                color: white;
+            }}
+        """)
+    
+    @staticmethod
+    def style_info_label(label):
+        """Style an info label"""
+        label.setFont(FontManager.get_font('small'))
+        label.setStyleSheet(f"""
+            color: {COLORS['muted']};
+            padding: 5px;
+            font-style: italic;
+        """)

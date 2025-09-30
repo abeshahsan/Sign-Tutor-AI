@@ -17,7 +17,8 @@ from core.video_processor import CameraManager
 from core.game_logic import GameLogic
 from ui.ui_styles import StyleManager
 from ui.ui_components import (TitleWidget, CurrentSignWidget, ProgressWidget, 
-                          ControlsWidget, VideoDisplayWidget, DetectionStatusWidget)
+                          ControlsWidget, VideoDisplayWidget, DetectionStatusWidget,
+                          ModelSelectionWidget, CameraSelectionWidget)
 
 
 class SignLanguageApp(QMainWindow):
@@ -37,6 +38,7 @@ class SignLanguageApp(QMainWindow):
         # UI state
         self.camera_active = False
         self.hint_visible = False
+        self.video_thread = None
         
         # Setup application
         self.setup_window()
@@ -71,8 +73,8 @@ class SignLanguageApp(QMainWindow):
         
         # Left panel components
         left_panel = self.create_left_panel()
-        left_panel.setMaximumWidth(400)
-        left_panel.setMinimumWidth(350)
+        left_panel.setMaximumWidth(450)  # Increased from 400 to 450
+        left_panel.setMinimumWidth(400)  # Increased from 350 to 400
         
         # Right panel components
         right_panel = self.create_right_panel()
@@ -110,20 +112,29 @@ class SignLanguageApp(QMainWindow):
     
     def create_right_panel(self):
         """Create right video panel with components"""
-        from PyQt6.QtWidgets import QFrame
+        from PyQt6.QtWidgets import QFrame, QHBoxLayout
         
         panel = QFrame()
         panel.setFrameStyle(QFrame.Shape.StyledPanel)
         layout = QVBoxLayout(panel)
         layout.setSpacing(15)
         
-        # Initialize components
+        # Create selection controls row
+        selection_row = QHBoxLayout()
+        self.model_selection_widget = ModelSelectionWidget()
+        self.camera_selection_widget = CameraSelectionWidget()
+        
+        selection_row.addWidget(self.model_selection_widget)
+        selection_row.addWidget(self.camera_selection_widget)
+        
+        # Initialize other components
         self.video_widget = VideoDisplayWidget()
         self.detection_widget = DetectionStatusWidget()
         
-        # Add components to layout
-        layout.addWidget(self.video_widget, 1)  # Give most space to video
-        layout.addWidget(self.detection_widget)
+        # Add components to layout with better proportions
+        layout.addLayout(selection_row)  # Selection boxes at top
+        layout.addWidget(self.video_widget, 3)  # Video gets most space
+        layout.addWidget(self.detection_widget, 1)  # Detection status at bottom
         
         return panel
     
@@ -133,6 +144,14 @@ class SignLanguageApp(QMainWindow):
         self.controls_widget.new_sign_btn.clicked.connect(self.select_new_sign)
         self.controls_widget.camera_btn.clicked.connect(self.toggle_camera)
         self.controls_widget.hint_btn.clicked.connect(self.toggle_hint)
+        
+        # Model and camera selection connections
+        self.model_selection_widget.model_changed.connect(self.on_model_changed)
+        self.camera_selection_widget.camera_changed.connect(self.on_camera_changed)
+        
+        # Refresh button connections
+        self.model_selection_widget.refresh_models_btn.clicked.connect(self.refresh_models)
+        self.camera_selection_widget.refresh_cameras_btn.clicked.connect(self.refresh_cameras)
     
     def setup_styling(self):
         """Apply styling to the application"""
@@ -140,13 +159,44 @@ class SignLanguageApp(QMainWindow):
     
     def initialize_model(self):
         """Initialize AI model"""
-        if self.model_manager.load_model():
-            self.status_bar.showMessage("AI Model loaded successfully!")
+        # Populate model selection widget
+        available_models = self.model_manager.get_available_models()
+        self.model_selection_widget.update_models(available_models)
+        
+        # Load default model if available - prioritize yolov5_v0.pt
+        if available_models:
+            # Try to find the original working model first
+            preferred_model_path = None
+            for display_name, path in available_models.items():
+                if "yolov5_v0" in path.lower() or "Yolov5 V0" in display_name:
+                    preferred_model_path = path
+                    break
+            
+            # If preferred model not found, use the first available
+            if not preferred_model_path:
+                preferred_model_path = list(available_models.values())[0]
+            
+            # Set the dropdown to show the selected model
+            for i in range(self.model_selection_widget.model_combo.count()):
+                if self.model_selection_widget.model_combo.itemData(i) == preferred_model_path:
+                    self.model_selection_widget.model_combo.setCurrentIndex(i)
+                    break
+            
+            if self.model_manager.load_model(preferred_model_path):
+                model_name = os.path.basename(preferred_model_path)
+                self.status_bar.showMessage(f"AI Model loaded: {model_name}")
+            else:
+                self.status_bar.showMessage("Warning: AI Model failed to load")
         else:
-            self.status_bar.showMessage("Warning: AI Model not available")
+            self.status_bar.showMessage("Warning: No AI Models found")
     
     def initialize_camera(self):
         """Initialize camera system"""
+        # Populate camera selection widget
+        available_cameras = self.camera_manager.get_available_cameras()
+        self.camera_selection_widget.update_cameras(available_cameras)
+        
+        # Initialize video thread
         self.video_thread = self.camera_manager.initialize(self.model_manager)
         
         # Connect video thread signals
@@ -256,6 +306,59 @@ class SignLanguageApp(QMainWindow):
     def on_sign_completed(self, sign_name, progress):
         """Handle sign completion"""
         self.status_bar.showMessage(MESSAGES['congratulations'].format(sign_name))
+    
+    def on_model_changed(self, model_path):
+        """Handle model selection change"""
+        # Stop camera if active
+        was_active = self.camera_active
+        if was_active:
+            self.stop_camera()
+        
+        # Load new model
+        if self.model_manager.load_model(model_path):
+            model_info = self.model_manager.get_current_model_info()
+            self.status_bar.showMessage(f"Loaded model: {model_info['name']} ({model_info['classes']} classes)")
+            
+            # Update video thread with new model manager (only if it exists)
+            if hasattr(self, 'video_thread') and self.video_thread:
+                self.video_thread.set_model_manager(self.model_manager)
+            
+            # Restart camera if it was active
+            if was_active:
+                self.start_camera()
+        else:
+            self.status_bar.showMessage("Failed to load selected model")
+    
+    def on_camera_changed(self, camera_index):
+        """Handle camera selection change"""
+        # Stop current camera if active
+        was_active = self.camera_active
+        if was_active:
+            self.stop_camera()
+        
+        # Set new camera index
+        if self.camera_manager.set_camera_index(camera_index):
+            self.status_bar.showMessage(f"Selected camera index: {camera_index}")
+            
+            # Restart camera if it was active
+            if was_active:
+                self.start_camera()
+        else:
+            self.status_bar.showMessage("Failed to select camera")
+    
+    def refresh_models(self):
+        """Refresh available models"""
+        self.status_bar.showMessage("Refreshing models...")
+        available_models = self.model_manager.discover_models()
+        self.model_selection_widget.update_models(available_models)
+        self.status_bar.showMessage(f"Found {len(available_models)} model(s)")
+    
+    def refresh_cameras(self):
+        """Refresh available cameras"""
+        self.status_bar.showMessage("Refreshing cameras...")
+        available_cameras = self.camera_manager.discover_cameras()
+        self.camera_selection_widget.update_cameras(available_cameras)
+        self.status_bar.showMessage(f"Found {len(available_cameras)} camera(s)")
     
     def closeEvent(self, event):
         """Handle application closing"""

@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                              QPushButton, QProgressBar, QFrame, QGroupBox, 
-                             QSizePolicy, QSpacerItem)
-from PyQt6.QtCore import Qt, QSize
+                             QSizePolicy, QSpacerItem, QComboBox)
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
 from PyQt6.QtGui import QPixmap, QImage
 
 from ui.ui_styles import StyleManager, FontManager, WidgetStyler
@@ -159,6 +159,141 @@ class ProgressWidget(QWidget):
         self.progress_bar.setValue(0)
 
 
+class ModelSelectionWidget(QWidget):
+    """Widget for model selection"""
+    
+    model_changed = pyqtSignal(str)  # Signal emitted when model is changed
+    
+    def __init__(self):
+        super().__init__()
+        self.setup_ui()
+    
+    def setup_ui(self):
+        # Main group box
+        self.group_box = QGroupBox()
+        WidgetStyler.style_group_box(self.group_box, "🤖 AI Model Selection")
+        
+        layout = QVBoxLayout(self)
+        selection_layout = QVBoxLayout(self.group_box)
+        
+        # Model selection dropdown
+        self.model_combo = QComboBox()
+        WidgetStyler.style_combo_box(self.model_combo)
+        self.model_combo.currentTextChanged.connect(self.on_model_changed)
+        
+        # Refresh button for models
+        self.refresh_models_btn = QPushButton("🔄 Refresh")
+        WidgetStyler.style_secondary_button(self.refresh_models_btn, "🔄 Refresh", 30)
+        
+        # Model info label
+        self.model_info_label = QLabel("No model selected")
+        WidgetStyler.style_info_label(self.model_info_label)
+        
+        # Layout for combo and refresh button
+        model_row = QHBoxLayout()
+        model_row.addWidget(self.model_combo, 1)
+        model_row.addWidget(self.refresh_models_btn)
+        
+        selection_layout.addWidget(QLabel("Select Model:"))
+        selection_layout.addLayout(model_row)
+        selection_layout.addWidget(self.model_info_label)
+        
+        layout.addWidget(self.group_box)
+    
+    def update_models(self, models_dict):
+        """Update available models in the dropdown"""
+        print(f"Updating models widget with: {models_dict}")  # Debug
+        self.model_combo.clear()
+        
+        for display_name, path in models_dict.items():
+            self.model_combo.addItem(display_name, path)
+            print(f"Added model: {display_name} -> {path}")  # Debug
+        
+        # Force the combobox to update and show all items
+        self.model_combo.setCurrentIndex(0 if models_dict else -1)
+        print(f"Model combobox count after update: {self.model_combo.count()}")
+        
+        if models_dict:
+            self.model_info_label.setText(f"Found {len(models_dict)} model(s)")
+        else:
+            self.model_info_label.setText("No models found")
+    
+    def on_model_changed(self, model_name):
+        """Handle model selection change"""
+        if model_name:
+            model_path = self.model_combo.currentData()
+            self.model_changed.emit(model_path)
+            self.model_info_label.setText(f"Selected: {model_name}")
+
+
+class CameraSelectionWidget(QWidget):
+    """Widget for camera selection"""
+    
+    camera_changed = pyqtSignal(int)  # Signal emitted when camera is changed
+    
+    def __init__(self):
+        super().__init__()
+        self.setup_ui()
+    
+    def setup_ui(self):
+        # Main group box
+        self.group_box = QGroupBox()
+        WidgetStyler.style_group_box(self.group_box, "📹 Camera Selection")
+        
+        layout = QVBoxLayout(self)
+        selection_layout = QVBoxLayout(self.group_box)
+        
+        # Camera selection dropdown
+        self.camera_combo = QComboBox()
+        WidgetStyler.style_combo_box(self.camera_combo)
+        self.camera_combo.currentIndexChanged.connect(self.on_camera_changed)
+        
+        # Refresh button for cameras
+        self.refresh_cameras_btn = QPushButton("🔄 Refresh")
+        WidgetStyler.style_secondary_button(self.refresh_cameras_btn, "🔄 Refresh", 30)
+        
+        # Camera info label
+        self.camera_info_label = QLabel("No cameras detected")
+        WidgetStyler.style_info_label(self.camera_info_label)
+        
+        # Layout for combo and refresh button
+        camera_row = QHBoxLayout()
+        camera_row.addWidget(self.camera_combo, 1)
+        camera_row.addWidget(self.refresh_cameras_btn)
+        
+        selection_layout.addWidget(QLabel("Select Camera:"))
+        selection_layout.addLayout(camera_row)
+        selection_layout.addWidget(self.camera_info_label)
+        
+        layout.addWidget(self.group_box)
+    
+    def update_cameras(self, cameras_dict):
+        """Update available cameras in the dropdown"""
+        print(f"Updating cameras widget with: {cameras_dict}")  # Debug
+        self.camera_combo.clear()
+        
+        for camera_index, camera_name in cameras_dict.items():
+            self.camera_combo.addItem(camera_name, camera_index)
+            print(f"Added camera: {camera_index} -> {camera_name}")  # Debug
+        
+        # Force the combobox to update and show all items
+        self.camera_combo.setCurrentIndex(0 if cameras_dict else -1)
+        print(f"Combobox count after update: {self.camera_combo.count()}")
+        
+        if cameras_dict:
+            self.camera_info_label.setText(f"Found {len(cameras_dict)} camera(s)")
+        else:
+            self.camera_info_label.setText("No cameras detected")
+    
+    def on_camera_changed(self, index):
+        """Handle camera selection change"""
+        if index >= 0:
+            camera_index = self.camera_combo.currentData()
+            camera_name = self.camera_combo.currentText()
+            self.camera_changed.emit(camera_index)
+            self.camera_info_label.setText(f"Selected: {camera_name}")
+
+
 class ControlsWidget(QWidget):
     """Widget for control buttons"""
     
@@ -233,7 +368,8 @@ class VideoDisplayWidget(QWidget):
         self.video_frame.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken)
         self.video_frame.setLineWidth(2)
         self.video_frame.setStyleSheet(StyleManager.get_video_frame_style())
-        self.video_frame.setMinimumHeight(450)
+        self.video_frame.setMinimumHeight(300)  # Reduced from 450 to 300
+        self.video_frame.setMaximumHeight(400)  # Added maximum height
         
         video_layout = QVBoxLayout(self.video_frame)
         video_layout.setContentsMargins(10, 10, 10, 10)

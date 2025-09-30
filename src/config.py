@@ -21,7 +21,7 @@ TARGET_FPS = 30
 FRAME_DELAY = 0.033  # 1/30 seconds
 
 # Detection Configuration
-CONFIDENCE_THRESHOLD = 0.5
+CONFIDENCE_THRESHOLD = 0.5  # Lower threshold for better ASL detection
 NMS_THRESHOLD = 0.45
 MAX_DETECTIONS = 1000
 REQUIRED_DETECTIONS = 15

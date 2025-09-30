@@ -23,11 +23,18 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.join(current_dir, 'src')
 sys.path.append(src_dir)  # Use append instead of insert to give priority to system modules
 
-# Check for model file
-model_path = os.path.join(current_dir, 'weights', 'yolov5_v0.pt')
-if not os.path.exists(model_path):
-    print("⚠️ Warning: Model file 'yolov5_v0.pt' not found in 'weights/' directory!")
-    print(f"Expected path: {model_path}")
+# Check for available models
+weights_dir = os.path.join(current_dir, 'weights')
+if os.path.exists(weights_dir):
+    model_files = [f for f in os.listdir(weights_dir) if f.endswith('.pt') or f.endswith('.pth')]
+    if model_files:
+        print(f"📁 Found {len(model_files)} model(s) in weights directory:")
+        for model_file in model_files:
+            print(f"   • {model_file}")
+    else:
+        print("⚠️ Warning: No model files (.pt/.pth) found in 'weights/' directory!")
+else:
+    print("⚠️ Warning: 'weights/' directory not found!")
 
 # Import and run the main application
 from src.main_app import main

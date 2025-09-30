@@ -59,9 +59,12 @@ class SignDatabase:
         """Get list of all available sign IDs"""
         return list(self.signs.keys())
     
-    def get_random_sign_id(self) -> int:
-        """Get a random sign ID"""
-        return random.choice(self.get_all_sign_ids())
+    def get_random_sign_id(self, exclude_ids: List[int] = None) -> int:
+        """Get a random sign ID, optionally excluding specific IDs"""
+        available_ids = self.get_all_sign_ids()
+        if exclude_ids:
+            available_ids = [sign_id for sign_id in available_ids if sign_id not in exclude_ids]
+        return random.choice(available_ids)
     
     def is_valid_sign_id(self, sign_id: int) -> bool:
         """Check if sign ID is valid"""
@@ -99,11 +102,14 @@ class GameLogic:
     def select_new_sign(self) -> Tuple[int, str]:
         """
         Select a new random sign for learning
+        Excludes 'Please' (ID 3) and 'Thanks' (ID 4) from selection
         
         Returns:
             Tuple[int, str]: Sign ID and name
         """
-        self.progress.current_sign_id = self.sign_database.get_random_sign_id()
+        # Exclude 'Please' (ID 3) and 'Thanks' (ID 4) from selection
+        excluded_signs = [3, 4]  # Please and Thanks
+        self.progress.current_sign_id = self.sign_database.get_random_sign_id(exclude_ids=excluded_signs)
         self.progress.current_sign_name = self.sign_database.get_sign_name(
             self.progress.current_sign_id
         )

@@ -259,3 +259,8 @@ Data\CollectedImages\
 Data\final_data\
 
 project.txt
+
+American-Sign-Language-Letters-1/
+# Data directory
+training/datasets/
+training/runs/
